@@ -1,27 +1,48 @@
-# Ping Pong Tournament
+<div align="center">
+  <img src="Captura de pantalla 2026-04-17 135410.png" alt="Mini Liga de Ping Pong en el Trabajo" width="180"/>
 
-Aplicación web para gestionar torneos y ligas de ping pong — individual o dobles.
-Construida con FastAPI + SQLite + Jinja2 (sin frontend framework, todo server-side).
+  # Mini Liga de Ping Pong en el Trabajo
+
+  **Plataforma web para gestionar torneos y ligas de ping pong — individual o dobles**
+
+  ![Python](https://img.shields.io/badge/Python-3.10%2B-blue?style=flat-square&logo=python)
+  ![FastAPI](https://img.shields.io/badge/FastAPI-0.100%2B-009688?style=flat-square&logo=fastapi)
+  ![SQLite](https://img.shields.io/badge/SQLite-3-003B57?style=flat-square&logo=sqlite)
+  ![License](https://img.shields.io/badge/licencia-MIT-green?style=flat-square)
+
+</div>
+
+---
+
+## Descripcion
+
+Aplicacion web construida con **FastAPI + SQLite + Jinja2** (server-side rendering, sin frameworks de frontend).
+Permite organizar torneos de eliminacion directa y ligas round-robin, registrar resultados partido a partido y compartir tablas de posiciones en tiempo real.
 
 ---
 
 ## Requisitos
 
-- Python 3.10+
-- pip
+| Herramienta | Version minima |
+|-------------|---------------|
+| Python      | 3.10+         |
+| pip         | ultima estable |
 
 ---
 
-## Instalación
+## Instalacion
 
 ```bash
-# 1. Crear entorno virtual
+# 1. Clonar el repositorio
+git clone <url-del-repo>
+cd plataforma-torneo-liga-pingpong
+
+# 2. Crear y activar entorno virtual
 python -m venv venv
 
-# 2. Activar entorno virtual
-# Windows:
+# Windows
 venv\Scripts\activate
-# Mac/Linux:
+# Mac / Linux
 source venv/bin/activate
 
 # 3. Instalar dependencias
@@ -30,42 +51,55 @@ pip install -r requirements.txt
 
 ---
 
-## Correr el proyecto
+## Uso
 
 ```bash
+# Iniciar el servidor en modo desarrollo
 uvicorn main:app --reload
 ```
 
-Luego abrir en el navegador: [http://localhost:8000](http://localhost:8000)
+Abrir en el navegador: [http://localhost:8000](http://localhost:8000)
 
-> `--reload` reinicia el servidor automáticamente al guardar cambios en el código.
+> `--reload` reinicia el servidor automaticamente al detectar cambios en el codigo.
 
----
+### Cargar datos de ejemplo
 
-## Base de datos
-
-SQLite — el archivo `ping_pong.db` se crea automáticamente en la primera ejecución.
-No requiere ninguna configuración adicional.
-
-### Cargar datos de ejemplo (liga)
-uvicorn main:app --reload
 ```bash
 python seed_liga.py
 ```
 
 ---
 
-## Estructura
+## Funcionalidades
+
+| Modulo       | Descripcion |
+|--------------|-------------|
+| **Jugadores** | Alta y listado de jugadores |
+| **Equipos**   | Crear equipos de dobles (2 jugadores por equipo) |
+| **Torneos**   | Eliminacion directa — bracket automatico con soporte de BYEs |
+| **Ligas**     | Round-robin ida simple o ida y vuelta, tabla de posiciones en vivo |
+| **Resultados**| Carga de scores partido a partido, bloqueo automatico al completar |
+
+---
+
+## Base de datos
+
+SQLite — el archivo `ping_pong.db` se genera automaticamente en la primera ejecucion.
+No requiere configuracion adicional.
+
+---
+
+## Estructura del proyecto
 
 ```
-ping-pong-tournament/
-├── main.py            # Rutas y lógica de la app (FastAPI)
-├── models.py          # Modelos SQLAlchemy (Player, Team, Tournament, League, Match)
-├── database.py        # Configuración de la base de datos SQLite
-├── seed_liga.py       # Script para poblar datos de ejemplo
-├── requirements.txt   # Dependencias Python
-├── ping_pong.db       # Base de datos SQLite (generada automáticamente)
-└── templates/         # Templates HTML (Jinja2)
+plataforma-torneo-liga-pingpong/
+├── main.py              # Rutas y logica principal (FastAPI)
+├── models.py            # Modelos SQLAlchemy (Player, Team, Tournament, League, Match)
+├── database.py          # Configuracion de la base de datos SQLite
+├── seed_liga.py         # Script para poblar datos de ejemplo
+├── requirements.txt     # Dependencias Python
+├── ping_pong.db         # Base de datos SQLite (generada automaticamente)
+└── templates/           # Templates HTML (Jinja2)
     ├── base.html
     ├── dashboard.html
     ├── players.html
@@ -79,10 +113,6 @@ ping-pong-tournament/
 
 ---
 
-## Funcionalidades
-
-- **Jugadores** — alta y listado de jugadores
-- **Equipos** — crear equipos de dobles (2 jugadores por equipo)
-- **Torneos** — formato eliminación directa (individual o dobles), con bracket automático y soporte de BYEs
-- **Ligas** — formato todos contra todos (ida simple o ida y vuelta), tabla de posiciones en tiempo real
-- **Resultados** — cargar scores partido a partido, bloqueo automático al completar
+<div align="center">
+  Hecho con dedicacion para la comunidad de ping pong en el trabajo
+</div>
