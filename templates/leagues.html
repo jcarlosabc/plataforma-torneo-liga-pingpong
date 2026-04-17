@@ -1,0 +1,111 @@
+{% extends "base.html" %}
+{% block title %}Ligas — PingPong Manager{% endblock %}
+{% block content %}
+
+<div class="flex items-center justify-between mb-8">
+  <div>
+    <h1 class="text-3xl font-black text-white">🥇 Ligas</h1>
+    <p class="text-slate-400 mt-1">Todos contra todos — Individual y Duplas</p>
+  </div>
+  {% if request.state.is_admin %}
+  <button onclick="document.getElementById('form-modal').classList.remove('hidden')" class="btn-primary flex items-center gap-2">
+    ➕ Nueva Liga
+  </button>
+  {% endif %}
+</div>
+
+{% if request.state.is_admin %}
+<!-- Modal nueva liga -->
+<div id="form-modal" class="hidden fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+  <div class="card p-6 w-full max-w-md">
+    <div class="flex items-center justify-between mb-4">
+      <h2 class="text-xl font-bold text-white">Nueva Liga</h2>
+      <button onclick="document.getElementById('form-modal').classList.add('hidden')" class="text-slate-400 hover:text-white text-2xl leading-none">&times;</button>
+    </div>
+    <form method="post" action="/leagues">
+      <label class="block text-sm text-slate-400 mb-1">Nombre de la liga</label>
+      <input name="name" type="text" required placeholder="Ej: Liga Primavera 2024" class="input-field mb-4"/>
+
+      <label class="block text-sm text-slate-400 mb-1">Modalidad</label>
+      <div class="grid grid-cols-2 gap-3 mb-6">
+        <label class="flex items-center gap-2 bg-slate-900 border border-slate-700 rounded-lg p-3 cursor-pointer hover:border-green-600 transition has-[:checked]:border-green-500 has-[:checked]:bg-green-900/20">
+          <input type="radio" name="type" value="individual" required class="accent-green-500"/>
+          <div>
+            <p class="font-semibold text-slate-200 text-sm">👤 Individual</p>
+            <p class="text-xs text-slate-500">Jugadores 1 vs 1</p>
+          </div>
+        </label>
+        <label class="flex items-center gap-2 bg-slate-900 border border-slate-700 rounded-lg p-3 cursor-pointer hover:border-blue-600 transition has-[:checked]:border-blue-500 has-[:checked]:bg-blue-900/20">
+          <input type="radio" name="type" value="doubles" class="accent-blue-500"/>
+          <div>
+            <p class="font-semibold text-slate-200 text-sm">👥 Duplas</p>
+            <p class="text-xs text-slate-500">Equipos de 2</p>
+          </div>
+        </label>
+      </div>
+
+      <label class="flex items-center gap-3 bg-slate-900 border border-slate-700 rounded-lg p-3 cursor-pointer hover:border-blue-600 transition mb-3">
+        <input type="checkbox" name="double_rr" value="true" class="w-4 h-4 accent-blue-500"/>
+        <div>
+          <p class="font-semibold text-slate-200 text-sm">🔄 Ida y Vuelta</p>
+          <p class="text-xs text-slate-500">Cada enfrentamiento se juega dos veces</p>
+        </div>
+      </label>
+
+      <label class="flex items-center gap-3 bg-slate-900 border border-slate-700 rounded-lg p-3 cursor-pointer hover:border-purple-600 transition mb-4">
+        <input type="checkbox" name="matches_per_jornada" value="2" class="w-4 h-4 accent-purple-500"/>
+        <div>
+          <p class="font-semibold text-slate-200 text-sm">📅 2 partidos por jornada</p>
+          <p class="text-xs text-slate-500">Divide el calendario: cada participante juega 2 por jornada</p>
+        </div>
+      </label>
+
+      <div class="flex gap-3 justify-end">
+        <button type="button" onclick="document.getElementById('form-modal').classList.add('hidden')" class="px-4 py-2 rounded-lg border border-slate-600 text-slate-400 hover:border-slate-400 transition text-sm">Cancelar</button>
+        <button type="submit" class="btn-primary">Crear Liga</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endif %}
+
+<!-- League list -->
+{% if leagues %}
+<div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+  {% for lg in leagues %}
+  <a href="/leagues/{{ lg.id }}" class="card p-5 hover:border-purple-700 transition block group">
+    <div class="flex items-start justify-between mb-3">
+      <div>
+        <div class="flex items-center gap-2 mb-1">
+          <span class="text-xl">{{ '👤' if lg.type == 'individual' else '👥' }}</span>
+          <span class="text-xs px-2 py-0.5 rounded-full font-medium
+            {{ 'badge-active' if lg.status == 'active' else 'badge-completed' }}">
+            {{ 'En curso' if lg.status == 'active' else 'Completada' }}
+          </span>
+        </div>
+        <h3 class="font-bold text-white text-lg leading-tight">{{ lg.name }}</h3>
+        <p class="text-xs text-slate-500 mt-0.5">{{ 'Individual' if lg.type == 'individual' else 'Duplas' }} · Liga #{{ lg.id }}</p>
+      </div>
+      <span class="text-3xl">{{ '🏅' if lg.status == 'completed' else '⚽' }}</span>
+    </div>
+    <div class="flex items-center justify-between border-t border-slate-700 pt-3">
+      <span class="text-sm text-slate-400 group-hover:text-purple-400 transition">Ver clasificación →</span>
+      {% if request.state.is_admin %}
+      <form method="post" action="/leagues/{{ lg.id }}/delete" onsubmit="event.stopPropagation(); return confirm('¿Eliminar liga {{ lg.name }}?')">
+        <button type="submit" class="text-red-500 hover:text-red-400 text-sm opacity-0 group-hover:opacity-100 transition" onclick="event.preventDefault(); if(confirm('¿Eliminar?')) this.form.submit()">🗑</button>
+      </form>
+      {% endif %}
+    </div>
+  </a>
+  {% endfor %}
+</div>
+{% else %}
+<div class="card p-16 text-center">
+  <div class="text-6xl mb-4">🥇</div>
+  <p class="text-slate-400 text-lg mb-2">Sin ligas creadas</p>
+  <p class="text-slate-600 text-sm mb-6">Una liga enfrenta a todos los participantes entre sí (todos contra todos).</p>
+  {% if request.state.is_admin %}<button onclick="document.getElementById('form-modal').classList.remove('hidden')" class="btn-primary">➕ Crear Liga</button>{% endif %}
+</div>
+{% endif %}
+
+{% endblock %}

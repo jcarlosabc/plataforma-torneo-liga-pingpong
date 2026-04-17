@@ -1,0 +1,392 @@
+{% extends "base.html" %}
+{% block title %}{{ league.name }} — PingPong Manager{% endblock %}
+{% block content %}
+
+<!-- Header -->
+<div class="flex flex-wrap items-start justify-between gap-4 mb-8">
+  <div>
+    <a href="/leagues" class="text-slate-500 hover:text-slate-300 text-sm mb-2 inline-block">← Ligas</a>
+    <div class="flex items-center gap-2 flex-wrap">
+      <h1 class="text-3xl font-black text-white flex items-center gap-3" id="liga-title">🥇 {{ league.name }}</h1>
+      {% if request.state.is_admin %}
+      <button onclick="document.getElementById('rename-liga').classList.toggle('hidden')"
+              type="button" class="text-slate-500 hover:text-yellow-400 text-sm" title="Renombrar liga">✏️</button>
+      {% endif %}
+    </div>
+    {% if request.state.is_admin %}
+    <div id="rename-liga" class="hidden mt-2">
+      <form method="post" action="/leagues/{{ league.id }}/rename" class="flex gap-2">
+        <input type="text" name="name" value="{{ league.name }}" required
+               class="input-field text-sm flex-1 max-w-xs"/>
+        <button type="submit" class="btn-primary text-sm px-3">Guardar</button>
+      </form>
+    </div>
+    {% endif %}
+    <div class="flex items-center gap-2 mt-2 flex-wrap">
+      <span class="text-sm px-3 py-1 rounded-full font-medium
+        {{ 'badge-active' if league.status == 'active' else 'badge-completed' }}">
+        {{ 'En curso' if league.status == 'active' else 'Completada' }}
+      </span>
+      <span class="text-sm text-slate-400">{{ '👤 Individual' if league.type == 'individual' else '👥 Duplas' }}</span>
+      {% if league.double_rr %}
+      <span class="text-sm px-2 py-0.5 rounded-full bg-blue-900/50 text-blue-400 border border-blue-800">🔄 Ida y Vuelta</span>
+      {% endif %}
+      {% if total_matches > 0 %}
+      <span class="text-sm text-slate-500">{{ completed_matches }}/{{ total_matches }} partidos</span>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="flex gap-2 flex-wrap">
+    <a href="/leagues/{{ league.id }}/share" target="_blank"
+       class="px-4 py-2 rounded-lg font-semibold text-sm flex items-center gap-2"
+       style="background:#1e3a5f;color:#60a5fa;border:1px solid #1e4a7f;">
+      📤 Compartir
+    </a>
+    {% if request.state.is_admin %}
+    {% if not schedule_legs and participants|length >= 2 %}
+    <form method="post" action="/leagues/{{ league.id }}/start" onsubmit="return confirm('¿Generar el calendario? No podrás agregar más participantes.')">
+      <button class="btn-orange flex items-center gap-2">⚡ Generar Calendario</button>
+    </form>
+    {% endif %}
+    {% if league.status == 'active' and schedule_legs %}
+    <form method="post" action="/leagues/{{ league.id }}/complete" onsubmit="return confirm('¿Marcar liga como completada?')">
+      <button class="btn-primary flex items-center gap-2">✅ Completar Liga</button>
+    </form>
+    {% endif %}
+    {% if league.status == 'completed' %}
+    <form method="post" action="/leagues/{{ league.id }}/cuadrangular"
+          onsubmit="return confirm('¿Crear cuadrangular con los mejores clasificados?\n\nIndividual: Top 8 (1vs4, 2vs3 y 5vs8, 6vs7)\nDuplas: Top 4 (1vs4, 2vs3)')">
+      <button class="flex items-center gap-2 px-4 py-2 rounded-lg font-semibold text-sm"
+              style="background:#4c1d95;color:#c4b5fd;border:1px solid #6d28d9;">
+        ⚡ Ir a Cuadrangular
+      </button>
+    </form>
+    {% endif %}
+    {% endif %}
+  </div>
+</div>
+
+<!-- Podio -->
+{% if standings and standings|length >= 1 %}
+{% set s1 = standings[0] %}
+{% set s2 = standings[1] if standings|length > 1 else None %}
+{% set s3 = standings[2] if standings|length > 2 else None %}
+<div class="grid grid-cols-3 gap-4 mb-8 max-w-lg mx-auto">
+  <div class="flex flex-col items-center gap-2 pt-8">
+    {% if s2 %}
+    <span class="text-3xl">🥈</span>
+    <div class="text-center">
+      <p class="font-bold text-slate-200 text-sm">{{ s2.participant.name }}</p>
+      <p class="text-slate-500 text-xs">{{ s2.points }} pts</p>
+    </div>
+    <div class="w-full rounded-t-lg py-6 text-center" style="background:linear-gradient(180deg,#4a4a4a,#2a2a2a); border-top: 3px solid #9ca3af;">
+      <span class="text-slate-300 font-black text-xl">2°</span>
+    </div>
+    {% endif %}
+  </div>
+  <div class="flex flex-col items-center gap-2">
+    <span class="text-4xl">🥇</span>
+    <div class="text-center">
+      <p class="font-bold text-white text-sm">{{ s1.participant.name }}</p>
+      <p class="text-yellow-500 text-xs">{{ s1.points }} pts</p>
+    </div>
+    <div class="w-full rounded-t-lg py-10 text-center" style="background:linear-gradient(180deg,#92400e,#451a03); border-top: 3px solid #fbbf24;">
+      <span class="text-yellow-400 font-black text-2xl">1°</span>
+    </div>
+  </div>
+  <div class="flex flex-col items-center gap-2 pt-12">
+    {% if s3 %}
+    <span class="text-3xl">🥉</span>
+    <div class="text-center">
+      <p class="font-bold text-slate-300 text-sm">{{ s3.participant.name }}</p>
+      <p class="text-slate-500 text-xs">{{ s3.points }} pts</p>
+    </div>
+    <div class="w-full rounded-t-lg py-4 text-center" style="background:linear-gradient(180deg,#5c2d00,#2d1500); border-top: 3px solid #b45309;">
+      <span class="text-amber-700 font-black text-lg">3°</span>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endif %}
+
+<div class="grid lg:grid-cols-3 gap-6">
+
+  <!-- LEFT: Participants + tabla -->
+  <div class="lg:col-span-1 space-y-4">
+    <div class="card p-5">
+      <h2 class="font-bold text-white mb-4">{{ '👤' if league.type == 'individual' else '👥' }} Participantes ({{ participants|length }})</h2>
+
+      {% if participants %}
+      <div class="space-y-2 mb-4">
+        {% for p in participants %}
+        <div class="flex items-center justify-between bg-slate-900/50 rounded-lg px-3 py-2">
+          <div class="flex items-center gap-2">
+            {% if standings %}
+              {% set rank = namespace(val=None) %}
+              {% for s in standings %}{% if s.participant.id == p.id %}{% set rank.val = loop.index %}{% endif %}{% endfor %}
+              {% if rank.val %}
+              <span class="text-sm">{{ '🥇' if rank.val == 1 else ('🥈' if rank.val == 2 else ('🥉' if rank.val == 3 else rank.val ~ '°')) }}</span>
+              {% endif %}
+            {% else %}
+            <span class="w-5 h-5 rounded-full bg-slate-700 flex items-center justify-center text-xs text-slate-400 font-bold">{{ loop.index }}</span>
+            {% endif %}
+            <div>
+              <p class="text-sm font-medium text-slate-200">{{ p.name }}</p>
+              {% if p.players is defined %}<p class="text-xs text-slate-500">{{ p.players }}</p>{% endif %}
+            </div>
+          </div>
+          {% if request.state.is_admin %}
+          <div class="flex items-center gap-1">
+            <button onclick="document.getElementById('rename-p{{ p.id }}').classList.toggle('hidden')"
+                    type="button" class="text-slate-600 hover:text-yellow-400 text-xs" title="Renombrar">✏️</button>
+            {% if not schedule_legs %}
+            <form method="post" action="/leagues/{{ league.id }}/participants/{{ p.id }}/remove">
+              <button class="text-red-500 hover:text-red-400 text-xs">✕</button>
+            </form>
+            {% endif %}
+          </div>
+          <div id="rename-p{{ p.id }}" class="hidden px-3 pb-2">
+            <form method="post" action="/teams/{{ p.id }}/rename" class="flex gap-2 mt-1">
+              <input type="text" name="name" value="{{ p.name }}" required
+                     class="input-field text-xs flex-1"/>
+              <button type="submit" class="btn-primary text-xs px-2">✓</button>
+            </form>
+          </div>
+          {% endif %}
+        </div>
+        {% endfor %}
+      </div>
+      {% else %}
+      <p class="text-slate-500 text-sm text-center py-4">Sin participantes.</p>
+      {% endif %}
+
+      {% if not schedule_legs and available and request.state.is_admin %}
+      <div class="space-y-2">
+        <!-- Agregar todos de una vez -->
+        <form method="post" action="/leagues/{{ league.id }}/participants/bulk">
+          {% for a in available %}
+          <input type="hidden" name="participant_id" value="{{ a.id }}"/>
+          {% endfor %}
+          <button type="submit" class="w-full btn-primary text-sm py-2">
+            ➕ Agregar todos ({{ available|length }})
+          </button>
+        </form>
+        <!-- Agregar uno por uno -->
+        <form method="post" action="/leagues/{{ league.id }}/participants" class="flex gap-2">
+          <select name="participant_id" class="input-field text-sm flex-1">
+            <option value="">Agregar uno...</option>
+            {% for a in available %}
+            <option value="{{ a.id }}">{{ a.label }}</option>
+            {% endfor %}
+          </select>
+          <button type="submit" class="btn-primary text-sm px-3">+</button>
+        </form>
+      </div>
+      {% endif %}
+
+      {% if not schedule_legs and participants|length < 2 %}
+      <p class="text-yellow-600 text-xs text-center mt-3">⚠️ Mínimo 2 participantes</p>
+      {% endif %}
+    </div>
+
+    <!-- Tabla de posiciones -->
+    {% if standings %}
+    <div class="card p-5">
+      <h2 class="font-bold text-white mb-3 text-sm uppercase tracking-wide">📊 Tabla de Posiciones</h2>
+      <div class="overflow-x-auto">
+        <table class="w-full text-xs">
+          <thead>
+            <tr class="text-slate-500 border-b border-slate-700">
+              <th class="text-left pb-2 pr-2">#</th>
+              <th class="text-left pb-2">Equipo</th>
+              <th class="text-center pb-2">PJ</th>
+              <th class="text-center pb-2 text-green-500">G</th>
+              <th class="text-center pb-2 text-red-500">P</th>
+              <th class="text-center pb-2 text-slate-400">+/-</th>
+              <th class="text-center pb-2 font-black text-yellow-500">Pts</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for s in standings %}
+            <tr class="border-b border-slate-800 {{ 'bg-yellow-900/10' if loop.index == 1 else ('bg-slate-700/5' if loop.index == 2 else ('bg-amber-900/10' if loop.index == 3 else '')) }}">
+              <td class="py-2 pr-2 font-bold {{ 'text-yellow-400' if loop.index == 1 else ('text-slate-400' if loop.index == 2 else ('text-amber-600' if loop.index == 3 else 'text-slate-500')) }}">
+                {{ '🥇' if loop.index == 1 else ('🥈' if loop.index == 2 else ('🥉' if loop.index == 3 else loop.index)) }}
+              </td>
+              <td class="py-2 font-medium text-slate-200 truncate max-w-20">{{ s.participant.name }}</td>
+              <td class="py-2 text-center text-slate-400">{{ s.games_played }}</td>
+              <td class="py-2 text-center text-green-400 font-bold">{{ s.wins }}</td>
+              <td class="py-2 text-center text-red-400">{{ s.losses }}</td>
+              <td class="py-2 text-center {{ 'text-green-400' if s.set_diff > 0 else ('text-red-400' if s.set_diff < 0 else 'text-slate-400') }}">
+                {{ '+' if s.set_diff > 0 else '' }}{{ s.set_diff }}
+              </td>
+              <td class="py-2 text-center font-black text-yellow-400">{{ s.points }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+        <p class="text-slate-600 text-xs mt-2 text-center">G=Ganados P=Perdidos +/-=Diff. Sets Pts=Puntos</p>
+      </div>
+    </div>
+    {% endif %}
+  </div>
+
+  <!-- RIGHT: Calendario por jornadas -->
+  <div class="lg:col-span-2">
+    {% if schedule_legs %}
+    <div class="space-y-6">
+      {% for leg_data in schedule_legs %}
+      <div class="card p-5">
+        <div class="flex items-center justify-between mb-4 flex-wrap gap-2">
+          <h2 class="font-bold text-white text-lg flex items-center gap-2">
+            {% if leg_data.locked %}<span class="text-red-400">🔒</span>{% endif %}
+            {{ leg_data.label }}
+          </h2>
+          <div class="flex items-center gap-2 flex-wrap">
+            {% set pend = leg_data.matches | selectattr('status', 'eq', 'pending') | list | length %}
+            {% set done = leg_data.matches | selectattr('status', 'eq', 'completed') | list | length %}
+            <span class="px-2 py-1 bg-green-900/40 text-green-400 rounded-full text-xs">✓ {{ done }}</span>
+            {% if pend > 0 %}<span class="px-2 py-1 bg-orange-900/40 text-orange-400 rounded-full text-xs">⏳ {{ pend }}</span>{% endif %}
+            {% if leg_data.locked %}
+              <span class="px-3 py-1 bg-red-900/30 border border-red-800 text-red-400 rounded-full text-xs font-bold">🔒 Bloqueada</span>
+            {% elif leg_data.all_done and request.state.is_admin %}
+              <form method="post" action="/leagues/{{ league.id }}/rounds/{{ leg_data.leg }}/lock"
+                    onsubmit="return confirm('¿Bloquear la jornada? Ya no se podrán editar los resultados.')">
+                <button class="btn-danger text-xs px-3 py-1">🔒 Jornada Cumplida</button>
+              </form>
+            {% endif %}
+          </div>
+        </div>
+
+        <div class="space-y-2">
+          {% for match in leg_data.matches %}
+          <div class="match-card {{ 'completed' if match.status == 'completed' else '' }}">
+            <div class="flex items-center gap-2">
+              <!-- P1 -->
+              <div class="flex-1 flex items-center justify-end gap-2 min-w-0">
+                <div class="text-right min-w-0">
+                  <p class="font-semibold text-sm truncate {{ 'text-green-300 score-winner' if (match.winner and match.p1 and match.winner.id == match.p1.id) else 'text-slate-300' }}">
+                    {{ match.p1.name if match.p1 else '—' }}
+                  </p>
+                  {% if match.p1 and match.p1.players is defined %}
+                  <p class="text-xs text-slate-500 truncate">{{ match.p1.players }}</p>
+                  {% endif %}
+                </div>
+                <!-- Avatar P1 -->
+                {% if match.p1 %}
+                  {% if match.p1.avatar1 is defined %}
+                    <!-- Dupla: dos fotos superpuestas -->
+                    <div class="flex -space-x-2 shrink-0">
+                      {% if match.p1.avatar2 %}
+                      <img src="{{ match.p1.avatar2 }}" class="w-7 h-7 rounded-full object-cover border-2 border-slate-800" title="{{ match.p1.player2_name }}"/>
+                      {% else %}
+                      <div class="w-7 h-7 rounded-full bg-slate-700 flex items-center justify-center text-xs font-bold text-slate-300 border-2 border-slate-800">{{ match.p1.player2_name[0] if match.p1.player2_name else '?' }}</div>
+                      {% endif %}
+                      {% if match.p1.avatar1 %}
+                      <img src="{{ match.p1.avatar1 }}" class="w-7 h-7 rounded-full object-cover border-2 border-slate-800" title="{{ match.p1.player1_name }}"/>
+                      {% else %}
+                      <div class="w-7 h-7 rounded-full bg-slate-700 flex items-center justify-center text-xs font-bold text-slate-300 border-2 border-slate-800">{{ match.p1.player1_name[0] if match.p1.player1_name else '?' }}</div>
+                      {% endif %}
+                    </div>
+                  {% else %}
+                    <!-- Individual -->
+                    {% if match.p1.avatar %}
+                    <img src="{{ match.p1.avatar }}" class="w-8 h-8 rounded-full object-cover border-2 border-slate-700 shrink-0" title="{{ match.p1.name }}"/>
+                    {% else %}
+                    <div class="w-8 h-8 rounded-full bg-slate-700 flex items-center justify-center text-sm font-bold text-slate-300 shrink-0">{{ match.p1.name[0] if match.p1.name else '?' }}</div>
+                    {% endif %}
+                  {% endif %}
+                {% endif %}
+              </div>
+
+              <!-- Score / Form -->
+              {% if match.status == 'completed' %}
+              <div class="flex flex-col items-center gap-1 shrink-0">
+                <div class="flex items-center gap-1.5">
+                  <span class="score-badge {{ 'score-winner' if (match.winner and match.p1 and match.winner.id == match.p1.id) else '' }}">{{ match.score1 }}</span>
+                  <span class="text-slate-600 text-xs font-bold">–</span>
+                  <span class="score-badge {{ 'score-winner' if (match.winner and match.p2 and match.winner.id == match.p2.id) else '' }}">{{ match.score2 }}</span>
+                  {% if not match.locked and request.state.is_admin %}
+                  <button onclick="document.getElementById('edit-{{ match.id }}').classList.toggle('hidden')"
+                          type="button" title="Editar resultado"
+                          class="text-slate-500 hover:text-yellow-400 transition text-sm ml-1">✏️</button>
+                  {% elif match.locked %}
+                  <span class="text-slate-600 text-xs ml-1">🔒</span>
+                  {% endif %}
+                </div>
+                {% if not match.locked and request.state.is_admin %}
+                <div id="edit-{{ match.id }}" class="hidden">
+                  <form method="post" action="/matches/{{ match.id }}/score" class="flex items-center gap-1 mt-1">
+                    <input type="number" name="score1" min="0" max="99" value="{{ match.score1 }}" required class="input-field text-center text-xs w-10 px-1"/>
+                    <span class="text-slate-600 text-xs">–</span>
+                    <input type="number" name="score2" min="0" max="99" value="{{ match.score2 }}" required class="input-field text-center text-xs w-10 px-1"/>
+                    <button type="submit" class="btn-primary text-xs px-2 py-1 ml-1">✓</button>
+                  </form>
+                </div>
+                {% endif %}
+              </div>
+              {% elif request.state.is_admin %}
+              <form method="post" action="/matches/{{ match.id }}/score" class="flex items-center gap-1 shrink-0">
+                <input type="number" name="score1" min="0" max="99" placeholder="0" required class="input-field text-center text-sm w-12 px-1"/>
+                <span class="text-slate-600 text-xs font-bold">vs</span>
+                <input type="number" name="score2" min="0" max="99" placeholder="0" required class="input-field text-center text-sm w-12 px-1"/>
+                <button type="submit" class="btn-primary text-xs px-2 py-1.5 ml-1">✓</button>
+              </form>
+              {% else %}
+              <span class="text-slate-500 text-xs shrink-0">Pendiente</span>
+              {% endif %}
+
+              <!-- P2 -->
+              <div class="flex-1 flex items-center gap-2 min-w-0">
+                <!-- Avatar P2 -->
+                {% if match.p2 %}
+                  {% if match.p2.avatar1 is defined %}
+                    <!-- Dupla: dos fotos superpuestas -->
+                    <div class="flex -space-x-2 shrink-0">
+                      {% if match.p2.avatar1 %}
+                      <img src="{{ match.p2.avatar1 }}" class="w-7 h-7 rounded-full object-cover border-2 border-slate-800" title="{{ match.p2.player1_name }}"/>
+                      {% else %}
+                      <div class="w-7 h-7 rounded-full bg-slate-700 flex items-center justify-center text-xs font-bold text-slate-300 border-2 border-slate-800">{{ match.p2.player1_name[0] if match.p2.player1_name else '?' }}</div>
+                      {% endif %}
+                      {% if match.p2.avatar2 %}
+                      <img src="{{ match.p2.avatar2 }}" class="w-7 h-7 rounded-full object-cover border-2 border-slate-800" title="{{ match.p2.player2_name }}"/>
+                      {% else %}
+                      <div class="w-7 h-7 rounded-full bg-slate-700 flex items-center justify-center text-xs font-bold text-slate-300 border-2 border-slate-800">{{ match.p2.player2_name[0] if match.p2.player2_name else '?' }}</div>
+                      {% endif %}
+                    </div>
+                  {% else %}
+                    <!-- Individual -->
+                    {% if match.p2.avatar %}
+                    <img src="{{ match.p2.avatar }}" class="w-8 h-8 rounded-full object-cover border-2 border-slate-700 shrink-0" title="{{ match.p2.name }}"/>
+                    {% else %}
+                    <div class="w-8 h-8 rounded-full bg-slate-700 flex items-center justify-center text-sm font-bold text-slate-300 shrink-0">{{ match.p2.name[0] if match.p2.name else '?' }}</div>
+                    {% endif %}
+                  {% endif %}
+                {% endif %}
+                <div class="text-left min-w-0">
+                  <p class="font-semibold text-sm truncate {{ 'text-green-300 score-winner' if (match.winner and match.p2 and match.winner.id == match.p2.id) else 'text-slate-300' }}">
+                    {{ match.p2.name if match.p2 else '—' }}
+                  </p>
+                  {% if match.p2 and match.p2.players is defined %}
+                  <p class="text-xs text-slate-500 truncate">{{ match.p2.players }}</p>
+                  {% endif %}
+                </div>
+              </div>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <div class="card p-12 text-center">
+      <div class="text-5xl mb-4">📅</div>
+      <p class="text-slate-400 text-lg mb-2">Sin calendario generado</p>
+      <p class="text-slate-600 text-sm">Agrega al menos 2 participantes y presiona <strong class="text-white">Generar Calendario</strong>.</p>
+    </div>
+    {% endif %}
+  </div>
+
+</div>
+{% endblock %}

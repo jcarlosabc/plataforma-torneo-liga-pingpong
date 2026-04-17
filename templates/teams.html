@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+{% block title %}Equipos — PingPong Manager{% endblock %}
+{% block content %}
+
+<div class="flex items-center justify-between mb-8">
+  <div>
+    <h1 class="text-3xl font-black text-white flex items-center gap-3">👥 Equipos de Duplas</h1>
+    <p class="text-slate-400 mt-1">{{ teams|length }} equipo(s) registrados</p>
+  </div>
+  {% if request.state.is_admin %}
+  <button onclick="document.getElementById('form-modal').classList.remove('hidden')" class="btn-primary flex items-center gap-2"
+    {% if players|length < 2 %}disabled title="Necesitas al menos 2 jugadores"{% endif %}>
+    ➕ Nuevo Equipo
+  </button>
+  {% endif %}
+</div>
+
+{% if request.state.is_admin and players|length < 2 %}
+<div class="bg-yellow-900/30 border border-yellow-700 rounded-lg p-4 mb-6 text-yellow-300 text-sm flex items-center gap-2">
+  ⚠️ Necesitas al menos 2 jugadores registrados para crear un equipo.
+  <a href="/players" class="underline ml-1">Ir a Jugadores</a>
+</div>
+{% endif %}
+
+{% if request.state.is_admin %}
+<!-- Modal nuevo equipo -->
+<div id="form-modal" class="hidden fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+  <div class="card p-6 w-full max-w-md">
+    <div class="flex items-center justify-between mb-4">
+      <h2 class="text-xl font-bold text-white">Nuevo Equipo de Duplas</h2>
+      <button onclick="document.getElementById('form-modal').classList.add('hidden')" class="text-slate-400 hover:text-white text-2xl leading-none">&times;</button>
+    </div>
+    <form method="post" action="/teams">
+      <label class="block text-sm text-slate-400 mb-1">Nombre del equipo</label>
+      <input name="name" type="text" required placeholder="Ej: Los Rompe Mesas" class="input-field mb-4"/>
+
+      <label class="block text-sm text-slate-400 mb-1">Jugador 1</label>
+      <select name="player1_id" required class="input-field mb-4">
+        <option value="">Seleccionar...</option>
+        {% for p in players %}
+        <option value="{{ p.id }}">{{ p.name }}</option>
+        {% endfor %}
+      </select>
+
+      <label class="block text-sm text-slate-400 mb-1">Jugador 2</label>
+      <select name="player2_id" required class="input-field mb-4">
+        <option value="">Seleccionar...</option>
+        {% for p in players %}
+        <option value="{{ p.id }}">{{ p.name }}</option>
+        {% endfor %}
+      </select>
+
+      <div class="flex gap-3 justify-end">
+        <button type="button" onclick="document.getElementById('form-modal').classList.add('hidden')" class="px-4 py-2 rounded-lg border border-slate-600 text-slate-400 hover:border-slate-400 transition text-sm">Cancelar</button>
+        <button type="submit" class="btn-primary">Crear Equipo</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endif %}
+
+<!-- Teams grid -->
+{% if teams %}
+<div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+  {% for team in teams %}
+  <div class="card p-5 hover:border-blue-700 transition group">
+    <div class="flex items-start justify-between mb-3">
+      <div class="flex items-center gap-3">
+        <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-700 to-blue-900 flex items-center justify-center text-xl font-black text-white">
+          {{ team.name[0].upper() }}
+        </div>
+        <div>
+          <p class="font-bold text-white text-lg leading-tight">{{ team.name }}</p>
+          <p class="text-xs text-slate-500">Equipo #{{ team.id }}</p>
+        </div>
+      </div>
+      {% if request.state.is_admin %}
+      <form method="post" action="/teams/{{ team.id }}/delete" onsubmit="return confirm('¿Eliminar equipo {{ team.name }}?')">
+        <button type="submit" class="text-red-500 hover:text-red-400 opacity-0 group-hover:opacity-100 transition text-sm">🗑</button>
+      </form>
+      {% endif %}
+    </div>
+    <div class="border-t border-slate-700 pt-3 space-y-1">
+      <div class="flex items-center gap-2 text-sm">
+        <span class="w-5 h-5 rounded-full bg-green-900 flex items-center justify-center text-xs text-green-400 font-bold">1</span>
+        <span class="text-slate-200">{{ team.player1.name }}</span>
+      </div>
+      <div class="flex items-center gap-2 text-sm">
+        <span class="w-5 h-5 rounded-full bg-blue-900 flex items-center justify-center text-xs text-blue-400 font-bold">2</span>
+        <span class="text-slate-200">{{ team.player2.name }}</span>
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% else %}
+<div class="card p-16 text-center">
+  <div class="text-6xl mb-4">👥</div>
+  <p class="text-slate-400 text-lg mb-2">Sin equipos registrados</p>
+  <p class="text-slate-600 text-sm mb-6">Crea un equipo de duplas con dos jugadores y dale un nombre.</p>
+  {% if request.state.is_admin and players|length >= 2 %}
+  <button onclick="document.getElementById('form-modal').classList.remove('hidden')" class="btn-primary">➕ Crear Equipo</button>
+  {% endif %}
+</div>
+{% endif %}
+
+{% endblock %}

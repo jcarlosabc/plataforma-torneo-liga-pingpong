@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+{% block title %}Dashboard — PingPong Manager{% endblock %}
+{% block content %}
+
+<!-- Hero -->
+<div class="relative rounded-2xl overflow-hidden mb-10 p-8" style="background: linear-gradient(135deg, #0d2818 0%, #1a3a2a 50%, #0d1a2e 100%); border: 1px solid #1e4d30;">
+  <!-- Decorative net -->
+  <div class="absolute inset-0 opacity-10" style="background-image: repeating-linear-gradient(90deg,#4ade80 0,#4ade80 1px,transparent 1px,transparent 40px), repeating-linear-gradient(180deg,#4ade80 0,#4ade80 1px,transparent 1px,transparent 40px);"></div>
+  <div class="relative">
+    <div class="flex items-center gap-3 mb-2">
+      <div class="w-3 h-3 rounded-full bg-orange-400 shadow-lg" style="box-shadow:0 0 12px #f97316"></div>
+      <span class="text-green-400 font-semibold uppercase tracking-widest text-xs">Sistema de Torneos</span>
+    </div>
+    <h1 class="text-4xl font-black text-white mb-2">Ping Pong <span class="text-green-400">Manager</span></h1>
+    <p class="text-slate-400 text-lg">Gestiona torneos individuales, ligas de duplas y mucho más.</p>
+  </div>
+</div>
+
+<!-- Stats -->
+<div class="grid grid-cols-2 md:grid-cols-5 gap-4 mb-10">
+  {% set stats = [
+    ('👤', players, 'Jugadores', '/players', 'from-green-900/50 to-green-900/20', 'border-green-800'),
+    ('👥', teams, 'Equipos', '/teams', 'from-blue-900/50 to-blue-900/20', 'border-blue-800'),
+    ('🏆', tournaments, 'Torneos', '/tournaments', 'from-yellow-900/50 to-yellow-900/20', 'border-yellow-800'),
+    ('🥇', leagues, 'Ligas', '/leagues', 'from-purple-900/50 to-purple-900/20', 'border-purple-800'),
+    ('⏳', pending_matches, 'Partidos Pend.', '/', 'from-orange-900/50 to-orange-900/20', 'border-orange-800'),
+  ] %}
+  {% for icon, val, label, href, gradient, border in stats %}
+  <a href="{{ href }}" class="card p-5 bg-gradient-to-br {{ gradient }} border {{ border }} hover:scale-105 transition-transform block text-center">
+    <div class="text-3xl mb-1">{{ icon }}</div>
+    <div class="text-3xl font-black text-white">{{ val }}</div>
+    <div class="text-slate-400 text-sm">{{ label }}</div>
+  </a>
+  {% endfor %}
+</div>
+
+<!-- Quick actions -->
+<div class="grid md:grid-cols-2 gap-6 mb-10">
+  <div class="card p-6">
+    <h2 class="text-lg font-bold text-white mb-4 flex items-center gap-2">🚀 Acciones rápidas</h2>
+    <div class="grid grid-cols-2 gap-3">
+      <a href="/players" class="flex items-center gap-2 bg-green-900/30 border border-green-800 rounded-lg p-3 hover:bg-green-900/50 transition text-sm font-medium text-green-300">
+        <span>➕</span> Nuevo Jugador
+      </a>
+      <a href="/teams" class="flex items-center gap-2 bg-blue-900/30 border border-blue-800 rounded-lg p-3 hover:bg-blue-900/50 transition text-sm font-medium text-blue-300">
+        <span>➕</span> Nuevo Equipo
+      </a>
+      <a href="/tournaments" class="flex items-center gap-2 bg-yellow-900/30 border border-yellow-800 rounded-lg p-3 hover:bg-yellow-900/50 transition text-sm font-medium text-yellow-300">
+        <span>🏆</span> Nuevo Torneo
+      </a>
+      <a href="/leagues" class="flex items-center gap-2 bg-purple-900/30 border border-purple-800 rounded-lg p-3 hover:bg-purple-900/50 transition text-sm font-medium text-purple-300">
+        <span>🥇</span> Nueva Liga
+      </a>
+    </div>
+  </div>
+
+  <div class="card p-6">
+    <h2 class="text-lg font-bold text-white mb-4 flex items-center gap-2">📋 Últimos resultados</h2>
+    {% if recent_matches %}
+    <div class="space-y-2">
+      {% for m in recent_matches %}
+      <div class="flex items-center justify-between bg-slate-900/60 rounded-lg px-3 py-2 text-sm">
+        <span class="text-slate-400 text-xs truncate max-w-24">{{ m.context }}</span>
+        <div class="flex items-center gap-2">
+          <span class="text-white font-medium truncate max-w-20">{{ m.p1 }}</span>
+          <span class="score-badge text-xs">{{ m.score1 }} – {{ m.score2 }}</span>
+          <span class="text-white font-medium truncate max-w-20">{{ m.p2 }}</span>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <p class="text-slate-500 text-sm text-center py-6">Sin partidos registrados aún.</p>
+    {% endif %}
+  </div>
+</div>
+
+<!-- How to use -->
+<div class="card p-6">
+  <h2 class="text-lg font-bold text-white mb-4">📖 ¿Cómo funciona?</h2>
+  <div class="grid md:grid-cols-4 gap-4 text-sm text-slate-400">
+    <div class="text-center p-3">
+      <div class="text-2xl mb-2">1️⃣</div>
+      <p><strong class="text-slate-200">Registra jugadores</strong> y forma equipos de duplas con nombre propio.</p>
+    </div>
+    <div class="text-center p-3">
+      <div class="text-2xl mb-2">2️⃣</div>
+      <p><strong class="text-slate-200">Crea un torneo o liga</strong> — individual o duplas — y agrega participantes.</p>
+    </div>
+    <div class="text-center p-3">
+      <div class="text-2xl mb-2">3️⃣</div>
+      <p><strong class="text-slate-200">Inicia</strong> el torneo (llave de eliminación) o liga (todos contra todos).</p>
+    </div>
+    <div class="text-center p-3">
+      <div class="text-2xl mb-2">4️⃣</div>
+      <p><strong class="text-slate-200">Registra resultados</strong> y ve las medallas 🥇🥈🥉 en tiempo real.</p>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

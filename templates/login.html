@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Iniciar Sesión — PingPong Manager</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body { background: #0f172a; }
+    .card { background: #1e293b; border: 1px solid #334155; border-radius: 12px; }
+    .btn-primary { background: #16a34a; color: #fff; padding: 10px 18px; border-radius: 8px; font-weight: 600; cursor: pointer; transition: background .2s; width: 100%; }
+    .btn-primary:hover { background: #15803d; }
+    .input-field { background: #0f172a; border: 1px solid #334155; color: #e2e8f0; border-radius: 8px; padding: 10px 14px; width: 100%; font-size: 1rem; }
+    .input-field:focus { outline: 2px solid #16a34a; }
+  </style>
+</head>
+<body class="min-h-screen text-slate-200 flex items-center justify-center p-4">
+
+  <div class="w-full max-w-sm">
+    <!-- Logo -->
+    <div class="text-center mb-8">
+      <svg class="w-16 h-16 mx-auto mb-4" viewBox="0 0 40 40" fill="none">
+        <ellipse cx="16" cy="20" rx="13" ry="14" fill="#16a34a" stroke="#4ade80" stroke-width="1.5"/>
+        <ellipse cx="16" cy="20" rx="8" ry="9" fill="#15803d"/>
+        <line x1="29" y1="30" x2="38" y2="39" stroke="#92400e" stroke-width="4" stroke-linecap="round"/>
+        <circle cx="33" cy="9" r="5" fill="#f97316" stroke="#fed7aa" stroke-width="1"/>
+        <path d="M30 7 Q33 5 36 7" stroke="#fff8" stroke-width="0.8" fill="none"/>
+      </svg>
+      <h1 class="text-2xl font-black text-white">PingPong<span class="text-green-400">Manager</span></h1>
+      <p class="text-slate-500 text-sm mt-1">Acceso de administrador</p>
+    </div>
+
+    <div class="card p-8">
+      {% if error %}
+      <div class="flex items-center gap-2 bg-red-900/40 border border-red-700 text-red-300 rounded-lg px-4 py-3 text-sm mb-5">
+        ⚠️ {{ error }}
+      </div>
+      {% endif %}
+
+      <form method="post" action="/login" class="space-y-5">
+        <div>
+          <label class="block text-sm text-slate-400 mb-1.5">Usuario</label>
+          <input name="username" type="text" required autofocus
+                 class="input-field" placeholder="Usuario"/>
+        </div>
+        <div>
+          <label class="block text-sm text-slate-400 mb-1.5">Contraseña</label>
+          <input name="password" type="password" required
+                 class="input-field" placeholder="••••••••"/>
+        </div>
+        <button type="submit" class="btn-primary text-center">
+          🔑 Iniciar Sesión
+        </button>
+      </form>
+    </div>
+  </div>
+
+</body>
+</html>
