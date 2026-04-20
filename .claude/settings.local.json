@@ -3,7 +3,8 @@
     "allow": [
       "Bash(python -c \"import main\")",
       "Bash(git add *)",
-      "Bash(git commit -m ' *)"
+      "Bash(git commit -m ' *)",
+      "Bash(docker compose *)"
     ]
   }
 }

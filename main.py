@@ -499,12 +499,14 @@ def league_share(request: Request, lid: int, db: Session = Depends(get_db)):
 
     from datetime import date
     return templates.TemplateResponse(
+        request,
         "league_share.html",
-        request=request,
-        league=lg,
-        standings=standings,
-        schedule_legs=schedule_legs,
-        today=date.today().strftime("%d/%m/%Y"),
+        {
+            "league": lg,
+            "standings": standings,
+            "schedule_legs": schedule_legs,
+            "today": date.today().strftime("%d/%m/%Y"),
+        },
     )
 
 
@@ -516,7 +518,7 @@ def league_share(request: Request, lid: int, db: Session = Depends(get_db)):
 def login_page(request: Request):
     if request.session.get("admin"):
         return RedirectResponse("/", status_code=302)
-    return templates.TemplateResponse("login.html", request=request)
+    return templates.TemplateResponse(request, "login.html", {})
 
 
 @app.post("/login")
@@ -525,9 +527,9 @@ def login(request: Request, username: str = Form(...), password: str = Form(...)
         request.session["admin"] = True
         return RedirectResponse("/", status_code=302)
     return templates.TemplateResponse(
+        request,
         "login.html",
-        request=request,
-        error="Usuario o contraseña incorrectos",
+        {"error": "Usuario o contraseña incorrectos"},
         status_code=401,
     )
 
@@ -579,14 +581,16 @@ def dashboard(request: Request, db: Session = Depends(get_db)):
             "score2": m.score2,
         })
     return templates.TemplateResponse(
+        request,
         "dashboard.html",
-        request=request,
-        players=players,
-        teams=teams,
-        tournaments=tournaments,
-        leagues=leagues,
-        pending_matches=pending_matches,
-        recent_matches=enriched,
+        {
+            "players": players,
+            "teams": teams,
+            "tournaments": tournaments,
+            "leagues": leagues,
+            "pending_matches": pending_matches,
+            "recent_matches": enriched,
+        },
     )
 
 
@@ -598,7 +602,7 @@ def dashboard(request: Request, db: Session = Depends(get_db)):
 def players_list(request: Request, db: Session = Depends(get_db), msg: str = ""):
     players = db.query(models.Player).order_by(models.Player.name).all()
     return templates.TemplateResponse(
-        "players.html", request=request, players=players, msg=msg
+        request, "players.html", {"players": players, "msg": msg}
     )
 
 
@@ -656,7 +660,7 @@ def teams_list(request: Request, db: Session = Depends(get_db), msg: str = ""):
     teams = db.query(models.Team).order_by(models.Team.name).all()
     players = db.query(models.Player).order_by(models.Player.name).all()
     return templates.TemplateResponse(
-        "teams.html", request=request, teams=teams, players=players, msg=msg
+        request, "teams.html", {"teams": teams, "players": players, "msg": msg}
     )
 
 
@@ -692,7 +696,7 @@ def delete_team(tid: int, db: Session = Depends(get_db)):
 def tournaments_list(request: Request, db: Session = Depends(get_db), msg: str = ""):
     tournaments = db.query(models.Tournament).order_by(models.Tournament.created_at.desc()).all()
     return templates.TemplateResponse(
-        "tournaments.html", request=request, tournaments=tournaments, msg=msg
+        request, "tournaments.html", {"tournaments": tournaments, "msg": msg}
     )
 
 
@@ -757,14 +761,16 @@ def tournament_detail(request: Request, tid: int, db: Session = Depends(get_db),
         bracket = build_bracket_context(db, t)
 
     return templates.TemplateResponse(
+        request,
         "tournament_detail.html",
-        request=request,
-        tournament=t,
-        participants=participant_details,
-        participant_ids=participant_ids,
-        available=available,
-        bracket=bracket,
-        msg=msg,
+        {
+            "tournament": t,
+            "participants": participant_details,
+            "participant_ids": participant_ids,
+            "available": available,
+            "bracket": bracket,
+            "msg": msg,
+        },
     )
 
 
@@ -829,7 +835,7 @@ def complete_tournament(tid: int, db: Session = Depends(get_db)):
 def leagues_list(request: Request, db: Session = Depends(get_db), msg: str = ""):
     leagues = db.query(models.League).order_by(models.League.created_at.desc()).all()
     return templates.TemplateResponse(
-        "leagues.html", request=request, leagues=leagues, msg=msg
+        request, "leagues.html", {"leagues": leagues, "msg": msg}
     )
 
 
@@ -956,18 +962,20 @@ def league_detail(request: Request, lid: int, db: Session = Depends(get_db), msg
     participant_details = [get_participant_detail(db, pid, lg.type) for pid in participant_ids]
 
     return templates.TemplateResponse(
+        request,
         "league_detail.html",
-        request=request,
-        league=lg,
-        participants=participant_details,
-        participant_ids=participant_ids,
-        available=available,
-        standings=standings,
-        schedule_legs=schedule_legs,
-        total_matches=total_matches,
-        completed_matches=completed_matches,
-        pending_matches=total_matches - completed_matches,
-        msg=msg,
+        {
+            "league": lg,
+            "participants": participant_details,
+            "participant_ids": participant_ids,
+            "available": available,
+            "standings": standings,
+            "schedule_legs": schedule_legs,
+            "total_matches": total_matches,
+            "completed_matches": completed_matches,
+            "pending_matches": total_matches - completed_matches,
+            "msg": msg,
+        },
     )
 
 
