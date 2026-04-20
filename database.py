@@ -8,8 +8,13 @@ from sqlalchemy.orm import sessionmaker, DeclarativeBase
 load_dotenv()
 
 BASE_DIR = Path(__file__).resolve().parent
-_default_db = BASE_DIR / os.getenv("DB_DIR", "") / "ping_pong.db" if os.getenv("DB_DIR") else BASE_DIR / "ping_pong.db"
+_default_db = BASE_DIR / "ping_pong.db"
 DATABASE_URL = os.getenv("DATABASE_URL", f"sqlite:///{_default_db}")
+
+# Crear la carpeta del archivo si no existe (necesario en Railway/Docker)
+if DATABASE_URL.startswith("sqlite"):
+    _db_path = Path(DATABASE_URL.replace("sqlite:///", "").replace("sqlite://", ""))
+    _db_path.parent.mkdir(parents=True, exist_ok=True)
 
 engine = create_engine(
     DATABASE_URL,
