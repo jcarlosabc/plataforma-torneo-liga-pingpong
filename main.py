@@ -578,7 +578,7 @@ def dashboard(request: Request, db: Session = Depends(get_db)):
         })
     return templates.TemplateResponse(
         "dashboard.html",
-        {
+        **{
             "request": request,
             "players": players,
             "teams": teams,
