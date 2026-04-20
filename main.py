@@ -5,6 +5,9 @@ from collections import defaultdict
 from datetime import datetime
 from itertools import combinations
 
+from dotenv import load_dotenv
+load_dotenv()
+
 from fastapi import FastAPI, Depends, Request, Form, HTTPException, UploadFile, File
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
@@ -49,8 +52,8 @@ templates = Jinja2Templates(directory="templates")
 
 # ─────────────────────── auth ────────────────────────
 
-ADMIN_USER = "superadmin"
-ADMIN_PASS = "pingpong321321"
+ADMIN_USER = os.getenv("ADMIN_USER", "superadmin")
+ADMIN_PASS = os.getenv("ADMIN_PASS", "pingpong321321")
 
 
 class AuthMiddleware(BaseHTTPMiddleware):
@@ -66,7 +69,7 @@ class AuthMiddleware(BaseHTTPMiddleware):
 
 
 app.add_middleware(AuthMiddleware)
-app.add_middleware(SessionMiddleware, secret_key="pp-secret-key-2024")
+app.add_middleware(SessionMiddleware, secret_key=os.getenv("SESSION_SECRET", "pp-secret-key-2024"))
 
 
 # ─────────────────────── helpers ────────────────────────
@@ -1189,3 +1192,8 @@ def create_cuadrangular(lid: int, db: Session = Depends(get_db)):
     create_bracket(db, t.id, seeded_ids)
 
     return RedirectResponse(f"/tournaments/{t.id}?msg=Cuadrangular+creado", status_code=302)
+
+
+@app.get("/health")
+def health_check():
+    return {"status": "ok"}

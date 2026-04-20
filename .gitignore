@@ -1,0 +1,34 @@
+# Variables de entorno (¡nunca subir al repositorio!)
+.env
+
+# Base de datos SQLite
+*.db
+*.db-shm
+*.db-wal
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.venv/
+venv/
+env/
+*.egg-info/
+dist/
+build/
+
+# Avatares subidos por usuarios
+static/avatars/*
+!static/avatars/.gitkeep
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+
+# Docker
+.dockerignore
+
+# OS
+.DS_Store
+Thumbs.db
